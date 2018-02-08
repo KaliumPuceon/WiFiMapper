@@ -30,7 +30,7 @@ public class generate_fingerprint extends AppCompatActivity {
     String line;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) { //Mostly autogen boilerplate
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_generate_fingerprint);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -45,6 +45,9 @@ public class generate_fingerprint extends AppCompatActivity {
                 Snackbar.make(view, "Scan Cleared", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
+
+                    //Reset recording status on pressing the mail button
+                    //Resets ProgressBar, contents of textdisplay, etc.
                     isRecorded = false;
                     line = "";
                     ProgressBar prog = findViewById(R.id.scanCount);
@@ -61,14 +64,14 @@ public class generate_fingerprint extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu) { //Boilerplate
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_generate_fingerprint, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) { //More reset code, boilerplate
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -93,14 +96,14 @@ public class generate_fingerprint extends AppCompatActivity {
 
 
 
-    public void incrementProgressBar(View v) {
+    public void incrementProgressBar(View v) { //OK technically this does a lot of things that aren't "Increment the bar"
 
         Button save = findViewById(R.id.SaveButton);
         ProgressBar prog = findViewById(R.id.scanCount);
         Button scan = findViewById(R.id.button);
         int progress = prog.getProgress();
         prog.setProgress(progress+10);
-        if (prog.getProgress()==100) {
+        if (prog.getProgress()==100) { //Check if bar full and allow saving if true
 
             isRecorded = true;
             save.setEnabled(true);
@@ -108,11 +111,14 @@ public class generate_fingerprint extends AppCompatActivity {
 
         }
 
-        WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        List<ScanResult> results;
-        wifi.startScan();
+        //IMPORTANT: START OF WIFI HANDLING MAGIC CODE
+        //Also you'll need to set the wifi permissions
 
-        results = wifi.getScanResults();
+        WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE); //Create a wifi manager
+        List<ScanResult> results; //For storing results
+        wifi.startScan(); //Run a scan
+
+        results = wifi.getScanResults(); //Store results
 
         EditText display = findViewById(R.id.textDisplay);
 
@@ -121,14 +127,18 @@ public class generate_fingerprint extends AppCompatActivity {
         EditText pickAreaID = findViewById(R.id.pickAreaID);
 
 
-        for (int k = 0; k < results.size(); k++)
+        for (int k = 0; k < results.size(); k++) //Iterate over results and print out
         {
             line = line +pickRoomID.getText() +"," +pickRoomName.getText()+","+pickAreaID.getText()+","+(results.get(k).SSID + "," + results.get(k).BSSID + "," + results.get(k).level)+"\n";
         }
 
+        // To summarise, if each entry in the list is gonna be stored in a variable, let's call it value
+        //
+        // Then to get the MAC, get value.BSSID and for the Strength, get value.level
+
     }
 
-    public void oneScan(View v) {
+    public void oneScan(View v) { //Take a diagnostic scan and save it to the download file
 
         line = "";
 
@@ -137,6 +147,8 @@ public class generate_fingerprint extends AppCompatActivity {
         EditText pickRoomName = findViewById(R.id.pickRoom);
         EditText pickRoomID = findViewById(R.id.pickRoomID);
         EditText pickAreaID = findViewById(R.id.pickAreaID);
+
+        //MORE WIFI CODE, IDENTICAL BECAUSE DRY
 
         WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
@@ -151,12 +163,14 @@ public class generate_fingerprint extends AppCompatActivity {
         String localops = line;
         display.setText(localops);
 
+        //Setting up file writing to the Downloads folder
+
         String filename = String.valueOf(pickRoomName.getText())+"reading"+String.valueOf(pickRoomID.getText())+String.valueOf(pickAreaID.getText())+".txt";
         filename = filename;
         File file;
         FileOutputStream outputStream;
         try {
-            file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), filename);
+            file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), filename); //setup filestream to downloads folder
 
             outputStream = new FileOutputStream(file);
             outputStream.write(localops.getBytes());
@@ -166,13 +180,13 @@ public class generate_fingerprint extends AppCompatActivity {
         }
     }
 
-    public void incrementAreaID(View v){
+    public void incrementAreaID(View v){ //Never Used
         EditText pickAreaID = findViewById(R.id.pickAreaID);
         int number = Integer.parseInt(String.valueOf(pickAreaID.getText()));
         pickAreaID.setText(number+1);
     }
 
-    public void saveCurrentPrint(View v) throws IOException {
+    public void saveCurrentPrint(View v) throws IOException { //Uses the same filestream code to save a fingerprint file to the Downloads folder
 
         EditText display = findViewById(R.id.textDisplay);
         String localops = line;
